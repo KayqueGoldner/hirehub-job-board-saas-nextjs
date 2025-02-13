@@ -5,8 +5,10 @@ import Image from "next/image";
 
 import Logo from "@/public/logo.png";
 import { Card, CardContent } from "@/components/ui/card";
-import { UserTypeSelection } from "@/components/forms/onboarding/user-type-form";
-import { CompanyForm } from "@/components/forms/onboarding/company-form";
+
+import { UserTypeSelection } from "./user-type-form";
+import { CompanyForm } from "./company-form";
+import { JobseekerForm } from "./jobseeker-form";
 
 type UserSelectionType = "company" | "jobSeeker" | null;
 
@@ -24,11 +26,7 @@ export const OnboardingForm = () => {
       case 1:
         return <UserTypeSelection onSelect={handleUserTypeSelection} />;
       case 2:
-        return userType === "company" ? (
-          <CompanyForm />
-        ) : (
-          <p>User is a job seeker</p>
-        );
+        return userType === "company" ? <CompanyForm /> : <JobseekerForm />;
       default:
         return null;
     }
