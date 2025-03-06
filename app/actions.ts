@@ -12,6 +12,8 @@ import {
 } from "@/app/utils/zodSchemas";
 import { prisma } from "@/app/utils/db";
 import arcjet, { detectBot, shield } from "@/app/utils/arcjet";
+import { stripe } from "@/app/utils/stripe";
+import { jobListingDurationPricing } from "@/app/utils/job-listing-duration-pricing";
 
 const aj = arcjet
   .withRule(shield({ mode: "LIVE" }))
@@ -90,14 +92,40 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
 
   const company = await prisma.company.findUnique({
     where: { userId: user.id },
-    select: { id: true },
+    select: {
+      id: true,
+      user: {
+        select: {
+          stripeCustomerId: true,
+        },
+      },
+    },
   });
 
   if (!company?.id) {
     return redirect("/");
   }
 
-  await prisma.jobPost.create({
+  let stripeCustomerId = company.user.stripeCustomerId;
+
+  if (!stripeCustomerId) {
+    const customer = await stripe.customers.create({
+      email: user.email!,
+      name: user.name!,
+    });
+
+    stripeCustomerId = customer.id;
+
+    // update user with stipe customer id
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        stripeCustomerId,
+      },
+    });
+  }
+
+  const jobPost = await prisma.jobPost.create({
     data: {
       companyId: company.id,
       employmentType: validateData.employmentType,
@@ -109,7 +137,44 @@ export async function createJob(data: z.infer<typeof jobSchema>) {
       salaryTo: validateData.salaryTo,
       benefits: validateData.benefits,
     },
+    select: {
+      id: true,
+    },
   });
 
-  return redirect("/");
+  const pricingTier = jobListingDurationPricing.find(
+    (tier) => tier.days === validateData.listingDuration,
+  );
+
+  if (!pricingTier) {
+    throw new Error("Invalid listing duration selected");
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    customer: stripeCustomerId,
+    line_items: [
+      {
+        price_data: {
+          product_data: {
+            name: `Job posting - ${pricingTier.days} Days`,
+            description: pricingTier.description,
+            images: [
+              "https://61s4tbof9m.ufs.sh/f/f66ThYMlxUP5CCWwBi7z1DwFyje24HorxmsYk8vtpASLO0uf",
+            ],
+          },
+          currency: "USD",
+          unit_amount: pricingTier.price * 100,
+        },
+        quantity: 1,
+      },
+    ],
+    mode: "payment",
+    metadata: {
+      jobId: jobPost.id,
+    },
+    success_url: `${process.env.NEXT_PUBLIC_URL}/payment/success`,
+    cancel_url: `${process.env.NEXT_PUBLIC_URL}/payment/cancel`,
+  });
+
+  return redirect(session.url as string);
 }

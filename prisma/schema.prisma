@@ -22,6 +22,7 @@ model User {
   sessions            Session[]
   onboardingCompleted Boolean   @default(false)
   userType            UserType?
+  stripeCustomerId    String?   @unique
 
   Company   Company?
   JobSeeker JobSeeker?
