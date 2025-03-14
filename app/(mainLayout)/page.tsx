@@ -1,9 +1,14 @@
+import { JobFilters } from "@/components/general/job-filters";
+import { JobListings } from "@/components/general/job-listings";
+
 export default function Home() {
   return (
-    <div>
-      <h1 className="relative flex size-full text-lg font-bold text-blue-500">
-        Hello World
-      </h1>
+    <div className="grid grid-cols-3 gap-8">
+      <JobFilters />
+
+      <div className="col-span-2 flex flex-col gap-6">
+        <JobListings />
+      </div>
     </div>
   );
 }
