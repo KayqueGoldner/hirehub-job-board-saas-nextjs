@@ -174,7 +174,7 @@ export const CreateJobForm = ({
                             {countryList.map((country) => (
                               <SelectItem
                                 key={country.code}
-                                value={country.code}
+                                value={country.name}
                               >
                                 <span>{country.flagEmoji}</span>
                                 <span className="ml-2">{country.name}</span>
@@ -282,7 +282,7 @@ export const CreateJobForm = ({
                             {countryList.map((country) => (
                               <SelectItem
                                 key={country.code}
-                                value={country.code}
+                                value={country.name}
                               >
                                 <span>{country.flagEmoji}</span>
                                 <span className="ml-2">{country.name}</span>
