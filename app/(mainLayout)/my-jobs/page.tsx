@@ -1,10 +1,5 @@
 import Image from "next/image";
-import {
-  CopyCheckIcon,
-  MoreHorizontalIcon,
-  PenBoxIcon,
-  XCircleIcon,
-} from "lucide-react";
+import { MoreHorizontalIcon, PenBoxIcon, XCircleIcon } from "lucide-react";
 import Link from "next/link";
 
 import { prisma } from "@/app/utils/db";
@@ -34,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { CopyLink } from "@/components/general/copy-link";
 
 async function getJobs(userId: string) {
   const data = await prisma.jobPost.findMany({
@@ -135,12 +131,9 @@ const MyJobsPage = async () => {
                               Edit Job
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/my-jobs/${listing.id}/edit`}>
-                              <CopyCheckIcon />
-                              Copy job URL
-                            </Link>
-                          </DropdownMenuItem>
+                          <CopyLink
+                            jobUrl={`${process.env.NEXT_PUBLIC_URL}/job/${listing.id}`}
+                          />
                           <DropdownMenuSeparator />
                           <DropdownMenuItem asChild>
                             <Link href={`/my-jobs/${listing.id}/delete`}>
