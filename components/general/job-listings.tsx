@@ -33,8 +33,6 @@ async function getData() {
 }
 
 export const JobListings = async () => {
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-
   const data = await getData();
 
   return (
