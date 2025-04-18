@@ -36,7 +36,7 @@ export const JobCard = ({ job }: JobCardProps) => {
               alt={job.Company.name}
               width={48}
               height={48}
-              className="size-12 rounded-lg"
+              className="rounded-lg object-contain"
             />
             <div>
               <h1 className="text-xl font-bold md:text-2xl">{job.jobTitle}</h1>
