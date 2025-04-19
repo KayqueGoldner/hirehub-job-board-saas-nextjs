@@ -3,8 +3,11 @@ import Link from "next/link";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { requireUser } from "@/app/utils/requiserUser";
 
-const PaymentSuccessPage = () => {
+const PaymentSuccessPage = async () => {
+  await requireUser();
+
   return (
     <div className="flex min-h-screen w-full flex-1 items-center justify-center">
       <Card className="w-[350px]">
