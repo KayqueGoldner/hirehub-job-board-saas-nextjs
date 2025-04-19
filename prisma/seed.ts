@@ -1,14 +1,22 @@
 import { PrismaClient, UserType, JobPostStatus } from "@prisma/client";
+import { benefits } from "../app/utils/benefits-list";
+import { countryList } from "../app/utils/countries-list";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("Seeding database...");
 
+  // Get benefit IDs from benefits-list
+  const benefitIds = benefits.map((benefit) => benefit.id);
+
+  // Get country names from countries-list
+  const countryNames = countryList.map((country) => country.name);
+
   const companies = [
     {
       name: "Google",
-      location: "Mountain View, CA",
+      location: countryNames[Math.floor(Math.random() * countryNames.length)],
       about:
         "Google LLC is an American multinational technology company that specializes in Internet-related services and products.",
       logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/2048px-Google_%22G%22_Logo.svg.png",
@@ -17,7 +25,7 @@ async function main() {
     },
     {
       name: "Microsoft",
-      location: "Redmond, WA",
+      location: countryNames[Math.floor(Math.random() * countryNames.length)],
       about:
         "Microsoft Corporation is an American multinational technology corporation that produces computer software, consumer electronics, personal computers, and related services.",
       logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/2048px-Microsoft_logo.svg.png",
@@ -26,7 +34,7 @@ async function main() {
     },
     {
       name: "Amazon",
-      location: "Seattle, WA",
+      location: countryNames[Math.floor(Math.random() * countryNames.length)],
       about:
         "Amazon.com, Inc. is an American multinational technology company focusing on e-commerce, cloud computing, online advertising, digital streaming, and artificial intelligence.",
       logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/2560px-Amazon_logo.svg.png",
@@ -35,7 +43,7 @@ async function main() {
     },
     {
       name: "Meta",
-      location: "Menlo Park, CA",
+      location: countryNames[Math.floor(Math.random() * countryNames.length)],
       about:
         "Meta Platforms, Inc., doing business as Meta, is an American multinational technology conglomerate that owns and operates Facebook, Instagram, and WhatsApp.",
       logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Meta_Platforms_Inc._logo.svg/1200px-Meta_Platforms_Inc._logo.svg.png",
@@ -44,7 +52,7 @@ async function main() {
     },
     {
       name: "Apple",
-      location: "Cupertino, CA",
+      location: countryNames[Math.floor(Math.random() * countryNames.length)],
       about:
         "Apple Inc. is an American multinational technology company that specializes in consumer electronics, software and online services.",
       logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1667px-Apple_logo_black.svg.png",
@@ -73,26 +81,7 @@ async function main() {
   ];
 
   // Employment types
-  const employmentTypes = ["Full-time", "Part-time", "Contract", "Remote"];
-
-  // Benefits
-  const allBenefits = [
-    "Health Insurance",
-    "Dental Insurance",
-    "Vision Insurance",
-    "401(k)/Retirement Plan",
-    "Paid Time Off",
-    "Remote Work Options",
-    "Flexible Hours",
-    "Professional Development",
-    "Gym Membership",
-    "Free Lunches",
-    "Stock Options",
-    "Parental Leave",
-    "Mental Health Services",
-    "Tuition Reimbursement",
-    "Home Office Stipend",
-  ];
+  const employmentTypes = ["full-time", "part-time", "contract", "internship"];
 
   // Job descriptions template parts
   const introductions = [
@@ -161,9 +150,24 @@ async function main() {
       const salaryTo = salaryFrom + 20000 + Math.floor(Math.random() * 60000);
       const listingDuration = [30, 60, 90][Math.floor(Math.random() * 3)];
 
-      // Random 4-8 benefits
+      // Location - either company location, worldwide, or one of the country names
+      const locationOption = Math.floor(Math.random() * 10);
+      let jobLocation;
+      if (locationOption < 6) {
+        // 60% chance to use company location
+        jobLocation = company.location;
+      } else if (locationOption < 8) {
+        // 20% chance to be worldwide
+        jobLocation = "worldwide";
+      } else {
+        // 20% chance to use another country
+        jobLocation =
+          countryNames[Math.floor(Math.random() * countryNames.length)];
+      }
+
+      // Random 4-8 benefits using benefit IDs from benefits-list
       const numBenefits = Math.floor(Math.random() * 5) + 4;
-      const benefits = [...allBenefits]
+      const jobBenefits = [...benefitIds]
         .sort(() => 0.5 - Math.random())
         .slice(0, numBenefits);
 
@@ -210,7 +214,7 @@ async function main() {
         content: [
           {
             type: "text",
-            text: `We are seeking a talented ${jobTitle} to join our team in ${company.location}. This is a ${employmentType.toLowerCase()} position offering a competitive salary range of $${(salaryFrom / 1000).toFixed(0)}k - $${(salaryTo / 1000).toFixed(0)}k per year.`,
+            text: `We are seeking a talented ${jobTitle} to join our team in ${jobLocation === "worldwide" ? "a remote position" : jobLocation}. This is a ${employmentType.toLowerCase()} position offering a competitive salary range of $${(salaryFrom / 1000).toFixed(0)}k - $${(salaryTo / 1000).toFixed(0)}k per year.`,
           },
         ],
       });
@@ -307,12 +311,12 @@ async function main() {
         data: {
           jobTitle,
           employmentType,
-          location: company.location,
+          location: jobLocation,
           salaryFrom,
           salaryTo,
           jobDescription,
           listingDuration,
-          benefits,
+          benefits: jobBenefits,
           status:
             Math.random() > 0.5 ? JobPostStatus.ACTIVE : JobPostStatus.DRAFT,
           companyId: createdCompany.id,
