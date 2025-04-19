@@ -12,7 +12,6 @@ interface SalaryRangeSelectorProps {
   minSalary: number;
   maxSalary: number;
   step: number;
-  currency: string;
 }
 
 export const SalaryRangeSelector = ({
@@ -20,7 +19,6 @@ export const SalaryRangeSelector = ({
   minSalary,
   maxSalary,
   step,
-  currency,
 }: SalaryRangeSelectorProps) => {
   const { field: fromField } = useController({
     name: "salaryFrom",
